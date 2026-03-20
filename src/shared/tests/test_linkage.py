@@ -145,7 +145,7 @@ def test_exclusively_hosted_service_creates_rejected_proposal(
     assert proposal.derivations.count() == 0
 
 
-@pytest.mark.xfail(reason="Not implemented: hardware CPE filtering (#391)")
+@pytest.mark.xfail(reason="Not implemented")
 def test_hardware_cpe_produces_no_match(
     make_container: Callable[..., Container],
     make_drv: Callable[..., NixDerivation],
@@ -174,7 +174,7 @@ def test_application_cpe_produces_match(
     assert build_new_links(container)
 
 
-@pytest.mark.xfail(reason="Not implemented: hardware CPE filtering (#391)")
+@pytest.mark.xfail(reason="Not implemented")
 def test_mixed_cpe_parts_skips_hardware_only_affected_products(
     make_container: Callable[..., Container],
     make_drv: Callable[..., NixDerivation],
@@ -200,3 +200,4 @@ def test_mixed_cpe_parts_skips_hardware_only_affected_products(
     assert build_new_links(app_container)
     suggestion = CVEDerivationClusterProposal.objects.get(cve=app_container.cve)
     assert suggestion.derivations.filter(name__startswith="myapp").exists()
+    assert not suggestion.derivations.filter(name__startswith="some_router").exists()
