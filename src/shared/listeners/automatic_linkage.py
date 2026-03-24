@@ -26,17 +26,6 @@ from shared.models.nix_evaluation import (
 logger = logging.getLogger(__name__)
 
 
-# FIXME(@fricklerhandwerk): This only works because we're validating syntax on ingestion.
-# Use a proper parsing library such as https://github.com/nilp0inter/cpe to work on structured data.
-# That particular one looks like the best candidate, but appears unmaintained (or could just be very stable); needs thorough review before adopting it.
-def get_cpe_part(cpe_name: str) -> str | None:
-    parts = cpe_name.split(":")
-    if len(parts) < 3 or parts[0] != "cpe" or parts[1] != "2.3":
-        return None
-    part = parts[2]
-    return part if part in ("a", "h", "o") else None
-
-
 def produce_linkage_candidates(
     container: Container,
 ) -> dict[NixDerivation, ProvenanceFlags]:
@@ -57,10 +46,13 @@ def produce_linkage_candidates(
     # Exclude hardware-only affected products: those with at least one CPE
     # where all CPEs have part=h (cpe:2.3:h:...). Products with no CPEs are
     # kept so name-based matching still works for entries without CPE data.
+    # FIXME(@fricklerhandwerk): This only works because we're validating syntax on ingestion.
+    # Use a proper parsing library such as https://github.com/nilp0inter/cpe to work on structured data.
+    # That particular one looks like the best candidate, but appears unmaintained (or could just be very stable); needs thorough review before adopting it.
     has_any_cpe = Exists(Cpe.objects.filter(affectedproduct=OuterRef("pk")))
     has_non_hardware_cpe = Exists(
         Cpe.objects.filter(affectedproduct=OuterRef("pk")).exclude(
-            name__startswith="cpe:2.3:h:"
+            name__istartswith="cpe:2.3:h:"
         )
     )
     filtered_affected = container.affected.exclude(has_any_cpe & ~has_non_hardware_cpe)
