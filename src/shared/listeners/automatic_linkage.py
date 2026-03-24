@@ -43,11 +43,7 @@ def produce_linkage_candidates(
         .filter(row_num=1)
     )
 
-    # Exclude hardware-only affected products: those with at least one CPE
-    # where all CPEs have part=h (cpe:2.3:h:...). Products with no CPEs are
-    # kept so name-based matching still works for entries without CPE data.
-    # FIXME(@fricklerhandwerk): This only works because we're validating syntax on ingestion.
-    # Use a proper parsing library such as https://github.com/nilp0inter/cpe to work on structured data.
+    # FIXME(@fricklerhandwerk): se a proper parsing library such as https://github.com/nilp0inter/cpe to work on structured data.
     # That particular one looks like the best candidate, but appears unmaintained (or could just be very stable); needs thorough review before adopting it.
     has_any_cpe = Exists(Cpe.objects.filter(affectedproduct=OuterRef("pk")))
     has_non_hardware_cpe = Exists(
